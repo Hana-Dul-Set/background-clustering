@@ -1,6 +1,7 @@
 from sklearn import datasets
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+import collections
 
 from preprocess_data import *
 
@@ -17,6 +18,7 @@ k_means.fit(X)
 
 k_means_labels = k_means.labels_
 print('k_means_labels : ', k_means_labels)
+print(collections.Counter(k_means_labels))
 
 k_means_cluster_centers = k_means.cluster_centers_
 print('k_means_cluster_centers : ', k_means_cluster_centers)
