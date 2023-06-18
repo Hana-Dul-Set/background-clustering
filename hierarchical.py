@@ -37,10 +37,14 @@ name_list = get_name_data_list(DATA_PATH)
 
 hierarch = AgglomerativeClustering(n_clusters=N_CLUSTERS).fit(X)
 
+# dendrogram
+# hierarch = AgglomerativeClustering(distance_threshold=0, n_clusters=None).fit(X)
+
 hierarch_labels = hierarch.labels_
 print(hierarch_labels)
 print(collections.Counter(hierarch_labels))
 
+# dendrogram
 """
 plot_dendrogram(hierarch, truncate_mode=None)
 plt.xlabel("Number of points in node (or index of point if no parenthesis).")
