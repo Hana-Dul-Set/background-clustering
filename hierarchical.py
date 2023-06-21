@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 import collections
 
 from preprocess_data import *
-
-DATA_PATH = "./data/image_assessment_data.csv"
-N_CLUSTERS = 8
+from image_utils import *
 
 def plot_dendrogram(model, **kwargs):
     # Create linkage matrix and then plot the dendrogram
@@ -30,23 +28,28 @@ def plot_dendrogram(model, **kwargs):
     # Plot the corresponding dendrogram
     dendrogram(linkage_matrix, **kwargs)
 
-X = get_raw_data_list(DATA_PATH)
-X = X[:1000]
+def hierachy_clustering(DATA_PATH, N_CLUSTERS):
+    # DATA_PATH = "./data/image_assessment_data_inpaint.csv"
+    # N_CLUSTERS = 8
+    X = get_raw_data_list(DATA_PATH)
+    X = X[:1000]
 
-name_list = get_name_data_list(DATA_PATH)
+    name_list = get_name_data_list(DATA_PATH)
 
-hierarch = AgglomerativeClustering(n_clusters=N_CLUSTERS).fit(X)
+    hierarch = AgglomerativeClustering(n_clusters=N_CLUSTERS).fit(X)
 
-# dendrogram
-# hierarch = AgglomerativeClustering(distance_threshold=0, n_clusters=None).fit(X)
+    # dendrogram
+    # hierarch = AgglomerativeClustering(distance_threshold=0, n_clusters=None).fit(X)
 
-hierarch_labels = hierarch.labels_
-print(hierarch_labels)
-print(collections.Counter(hierarch_labels))
+    hierarch_labels = hierarch.labels_
+    print(collections.Counter(hierarch_labels))
 
-# dendrogram
-"""
-plot_dendrogram(hierarch, truncate_mode=None)
-plt.xlabel("Number of points in node (or index of point if no parenthesis).")
-plt.show()
-"""
+    hierarch_labels = hierarch_labels[1:]
+    show_images_by_label(hierarch_labels, name_list, N_CLUSTERS)
+
+    # dendrogram
+    """
+    plot_dendrogram(hierarch, truncate_mode=None)
+    plt.xlabel("Number of points in node (or index of point if no parenthesis).")
+    plt.show()
+    """
