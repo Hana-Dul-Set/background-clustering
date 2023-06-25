@@ -31,12 +31,12 @@ def plot_dendrogram(model, **kwargs):
 def hierachy_clustering(DATA_PATH, N_CLUSTERS):
     # DATA_PATH = "./data/image_assessment_data_inpaint.csv"
     # N_CLUSTERS = 8
-    X = get_raw_data_list(DATA_PATH)
+    X = get_raw_data_list_SAMPNet(DATA_PATH, normalized=True)
     X = X[:1000]
 
     name_list = get_name_data_list(DATA_PATH)
 
-    hierarch = AgglomerativeClustering(n_clusters=N_CLUSTERS).fit(X)
+    hierarch = AgglomerativeClustering(n_clusters=N_CLUSTERS, linkage='ward').fit(X)
 
     # dendrogram
     # hierarch = AgglomerativeClustering(distance_threshold=0, n_clusters=None).fit(X)
