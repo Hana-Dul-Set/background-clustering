@@ -2,28 +2,23 @@ import numpy as np
 import random
 import math
 
-def normalized_vector(vector):
+def get_normalized_vector(row):
+    vector = eval(row)
     norm = math.sqrt(sum(x ** 2 for x in vector))
     if norm == 0:
         return vector
     return [x / norm for x in vector]
 
-def get_raw_data_list(DATA_PATH):
+def get_raw_data_list_SAMPNet(DATA_PATH, normalized=False):
     ret = []
+    convert_row = eval
+    if(normalized):
+        convert_row = get_normalized_vector
     with open(DATA_PATH, "r") as file:
         data_list = file.readlines()
         for row in data_list:
             row = row.split('/')[3]
-            ret.append((eval(row)))
-    return np.array(ret)
-
-def get_normalized_raw_data_list(DATA_PATH):
-    ret = []
-    with open(DATA_PATH, "r") as file:
-        data_list = file.readlines()
-        for row in data_list:
-            row = row.split('/')[3]
-            ret.append(normalized_vector(np.array(eval(row))))
+            ret.append((convert_row(row)))
     return np.array(ret)
 
 def get_name_data_list(DATA_PATH):
