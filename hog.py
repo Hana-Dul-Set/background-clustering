@@ -1,13 +1,15 @@
 import cv2
 import numpy as np
 import os
+import time
 
 Config = {
     'Image_resize': (64, 64), # (width, height)
     'Image_convert': cv2.COLOR_BGR2GRAY, # cv2.COLOR_BGR2GRAY | cv2.COLOR_BGR2RGB | cv2.COLOR_BGR2HSV
-    'Cell_size': (32, 32), # (width, height),
-    'Magnitude_threshold': 40, # minimum magnitude limit,
-    'n_bins': 18, # n_bins
+    'Cell_size': (16, 16), # (width, height),
+    'Block_size': (2, 2), # (multiple_width, multiple_height),
+    'Magnitude_threshold': 100, # minimum magnitude limit,
+    'n_bins': 9, # n_bins
 }
 
 def get_gradient(image):
@@ -42,41 +44,63 @@ def get_histogram(magnitude, orientation, mag_threshold, n_bins):
     degree_axis = list(range(0, max_degree, int(180 / n_bins)))
     histogram = [0] * len(degree_axis)
     cell_size = magnitude.shape
+    diff = 180/n_bins
     for x in range(cell_size[0]):
         for y in range(cell_size[1]):
             if magnitude[x][y] < mag_threshold:
                 continue
-            index = int(orientation[x][y]//(180/n_bins))
-            histogram[index] += magnitude[x][y]
-    return histogram
+            index = int(orientation[x][y]//diff)
+            deg = index * 20
 
-def get_hog(IMAGE_PATH, image_name):
-    image = cv2.imread(os.path.join(IMAGE_PATH, image_name))
+            histogram[index] += magnitude[x][y] * ((orientation[x][y]-deg)/diff)
+
+            index += 1
+            if index == n_bins:
+                index = 0
+            histogram[index] += magnitude[x][y] * (1 - (orientation[x][y]-deg)/diff)
+    return np.array(histogram)
+
+def get_histogram_map(image):
     image = cv2.resize(image, Config['Image_resize'])
 
     image = cv2.cvtColor(image, Config['Image_convert'])
 
-    cellSize = Config['Cell_size']
+    cell_size = Config['Cell_size']
     mag_threshold = Config['Magnitude_threshold']
     n_bins = Config['n_bins']
 
-    hog = []
-    for x in range(0, image.shape[0], cellSize[0]):
-        for y in range(0, image.shape[1], cellSize[1]):
+    histogram_map = np.zeros((Config['Image_resize'][0]//cell_size[0], Config['Image_resize'][1]//cell_size[1], n_bins))
+    for x in range(0, image.shape[0], cell_size[0]):
+        for y in range(0, image.shape[1], cell_size[1]):
             x_start = x
             y_start = y
-            x_end = x + cellSize[0]
-            y_end = y + cellSize[1]
+            x_end = x + cell_size[0]
+            y_end = y + cell_size[1]
             cell = image[x_start:x_end, y_start:y_end]
             magnitude, orientation = get_gradient(image=cell)
             histogram = get_histogram(magnitude, orientation, mag_threshold, n_bins)
-            hog += histogram
-            """
-            print(list(histogram))
-            cv2.imshow('cell image', cell)
-            cv2.waitKey(0)
-            """
-    return hog
+            histogram_map[x//cell_size[0]][y//cell_size[1]] = histogram
+    return np.array(histogram_map)
+
+def get_hog(IMAGE_PATH, image_name):
+    image = cv2.imread(os.path.join(IMAGE_PATH, image_name))
+    histogram_map = get_histogram_map(image)
+    hog = np.array([])
+    map_size = histogram_map.shape
+    block_size = Config['Block_size']
+    for x in range(0, map_size[0]-block_size[0]+1):
+        for y in range(0, map_size[1]-block_size[1]+1):
+            histogram_vector = np.array([])
+            for bx in range(x, x + block_size[0]):
+                for by in range(y, y + block_size[1]):
+                    histogram_vector = np.concatenate((histogram_vector, histogram_map[bx][by]))
+            print(histogram_vector.shape)
+            vector_size = np.sqrt(np.sum(histogram_vector**2))
+            if vector_size == 0:
+                vector_size = 1
+            norm_vector = histogram_vector / vector_size
+            hog = np.concatenate((hog, norm_vector))
+    return list(hog)
 
 def get_config_string():
     config = str(Config).replace(' ', '')
@@ -107,7 +131,7 @@ def show_vector(IMAGE_PATH, image_name):
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    print(get_hog('./data/image/temp', 'h_3f507d02.jpg'))
-    show_magnitude('./data/image/temp', 'white.jpg')
-    show_vector('./data/image/temp', 'h_3f507d02.jpg')
+    print(get_hog('./data/image/bg-20k-train', 'h_0e805e0e.jpg'))
+    #show_magnitude('./data/image/temp', 'white.jpg')
+    # show_vector('./data/image/temp', 'h_3f507d02.jpg')
     # show_magnitude('./data/image/temp', 'h_5d303feb.jpg')
