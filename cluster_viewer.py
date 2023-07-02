@@ -21,7 +21,7 @@ COLUMN = ('Date', 'Clustering Setup', 'Image resize', 'Image_convert', 'Cell_siz
 IMAGE_PATH = './data/image/bg-20k-train'
 JSON_PATH = "./data/result"
 
-def create_image_viewer(IMAGE_PATH, labeled_image_files):
+def create_image_viewer(IMAGE_PATH, labeled_image_files, filename):
     label_value = 0
     def load_labeled_images(label, labeled_image_files):
         nonlocal frame, label_value, label_value_label
@@ -51,7 +51,7 @@ def create_image_viewer(IMAGE_PATH, labeled_image_files):
         load_labeled_images(str(label_value), labeled_image_files)
 
     window = tk.Toplevel(root)
-    window.title("Label Image Viewer")
+    window.title(filename)
 
     canvas = tk.Canvas(window, width=WINDOW_SIZE[0], height=WINDOW_SIZE[1])
     canvas.pack(side="left", fill="both", expand=True)
@@ -130,7 +130,9 @@ if __name__ == '__main__':
         row = make_row_tuple(filename, index)
         treeview.insert('', tk.END, values=row, tags=('black' if index % 2 == 0 else 'gray'))
         button = tk.Button(button_frame, text=str(index), height=1,\
-            command=lambda name=filename: create_image_viewer(IMAGE_PATH, get_dict_from_json(os.path.join(JSON_PATH, name))),\
+            command=lambda name=filename: create_image_viewer(IMAGE_PATH, \
+                                                              get_dict_from_json(os.path.join(JSON_PATH, name)),\
+                                                                name),\
             width=5)
         button.pack(padx=0, pady=1)
     
