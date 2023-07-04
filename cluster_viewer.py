@@ -16,12 +16,12 @@ WINDOW_SIZE = (1250, 750) # (width, height)
 MAIN_WINDOW_SIZE = (1400, 750) # (width, height)
 IMAGE_CNT_BY_ROW = 10
 
-COLUMN = ('Date', 'Clustering Setup', 'Image resize', 'Image_convert', 'Cell_size', 'Magnitude_threshold', 'n_bins', 'INDEX')
+COLUMN = ('Image_cnt', 'Clustering Setup', 'Image resize', 'Image_convert', 'Cell_size', 'Block_size', 'Magnitude_threshold', 'n_bins', 'INDEX')
 
 IMAGE_PATH = './data/image/bg-20k-train'
-JSON_PATH = "./data/result"
+JSON_PATH = "./data/result/normalized"
 
-def create_image_viewer(IMAGE_PATH, labeled_image_files, filename):
+def create_image_viewer(IMAGE_PATH, labeled_image_files, filename, root):
     label_value = 0
     def load_labeled_images(label, labeled_image_files):
         nonlocal frame, label_value, label_value_label
@@ -82,16 +82,18 @@ def make_row_tuple(filename, index):
     row = []
     filename = filename.split('.')[0]
     filename = filename.split(';')
-    date = filename[0]
-    cluster_setup = filename[1]
-    hog_parameter = list(eval(filename[2]).values())
-    row.append(date)
+    image_cnt = filename[1]
+    cluster_setup = filename[2]
+    hog_parameter = list(eval(filename[3]).values())
+    if len(hog_parameter) < 6:
+        hog_parameter.insert(3, 'X')
+    row.append(image_cnt)
     row.append(cluster_setup)
     row += hog_parameter
     row.append(index)
     return tuple(row)
 
-if __name__ == '__main__':
+def cluster_viewer(IMAGE_PATH, JSON_PATH):
     root = tk.Tk()
     root.title("Main Window")
     
@@ -118,7 +120,7 @@ if __name__ == '__main__':
 
     for col in COLUMN:
         treeview.heading(col, text=col)
-        treeview.column(col, width=150, anchor='center')
+        treeview.column(col, width=120, anchor='center')
     treeview.pack(pady=10, padx=10)
     
     json_list = os.listdir(JSON_PATH)
@@ -132,7 +134,7 @@ if __name__ == '__main__':
         button = tk.Button(button_frame, text=str(index), height=1,\
             command=lambda name=filename: create_image_viewer(IMAGE_PATH, \
                                                               get_dict_from_json(os.path.join(JSON_PATH, name)),\
-                                                                name),\
+                                                                name, root),\
             width=5)
         button.pack(padx=0, pady=1)
     
@@ -143,3 +145,6 @@ if __name__ == '__main__':
     canvas.configure(scrollregion=canvas.bbox("all"))
     
     root.mainloop()
+
+if __name__ == '__main__':
+    cluster_viewer(IMAGE_PATH, JSON_PATH)
