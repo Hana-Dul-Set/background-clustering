@@ -15,3 +15,18 @@ hierarchical clustering
 ```bash
   python main.py -h {cluster_count}
   ```
+
+# visualization
+The image, json, csv file should exist.
+
+cluster_viewer
+
+```bash
+  python visual_main.py -c
+  ```
+
+nearest 5 images
+
+```bash
+  python visual_main.py -n
+  ```
